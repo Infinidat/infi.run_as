@@ -4,7 +4,7 @@ from infi.winver import Windows
 from infi.pyutils.contexts import contextmanager
 from mock import patch, MagicMock
 from logging import getLogger
-from os import environ
+from os import environ, path
 from sys import argv, stderr, stdout, exit
 from .c_api import Environment, StartupInfoW, ProcessInformation, CreateProcessWithLogonW, WaitForInputIdle, Handle
 from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE
@@ -43,7 +43,7 @@ class CreateProcess(object):
         commandLine = Ctypes.NULL if cmd_line is None else create_unicode_buffer(cmd_line)
         creationFlags = Ctypes.DWORD(0x00000010 | 0x00000400)
         environment = Environment.from_dict(env_mapping)
-        currentDirectory = Ctypes.NULL if curdir is None else create_unicode_buffer(curdir)
+        currentDirectory = create_unicode_buffer(path.abspath('.') if curdir is None else curdir)
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
@@ -69,7 +69,7 @@ class CreateProcess(object):
         applicationName = Ctypes.NULL if app_name is None else create_unicode_buffer(app_name)
         commandLine = Ctypes.NULL if cmd_line is None else create_unicode_buffer(cmd_line)
         environment = Environment.from_dict(env_mapping)
-        currentDirectory = Ctypes.NULL if curdir is None else create_unicode_buffer(curdir)
+        currentDirectory = create_unicode_buffer(path.abspath('.') if curdir is None else curdir)
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
