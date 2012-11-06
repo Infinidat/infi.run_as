@@ -21,7 +21,7 @@ class CreateProcess(object):
         """ A drop-in replacement for _subprocess.CreateProcess that creates the process as an administrator
         :returns: a 4-tuple (proc_handle, thread_handle, pid, tid)"""
         from os import path, curdir
-        kwargs['curdir'] = os.path.abspath(curdir)
+        kwargs['curdir'] = path.abspath(curdir)
         if Windows().is_windows_2003() and environ.get('USERNAME', 'SYSTEM') == 'SYSTEM':
             # http://msdn.microsoft.com/en-us/library/windows/desktop/ms682431(v=vs.85).aspx
             # Windows XP with SP2 and Windows Server 2003:
