@@ -20,8 +20,6 @@ class CreateProcess(object):
     def create_process_as_administrator(self, *args, **kwargs):
         """ A drop-in replacement for _subprocess.CreateProcess that creates the process as an administrator
         :returns: a 4-tuple (proc_handle, thread_handle, pid, tid)"""
-        from os import path, curdir
-        kwargs['curdir'] = path.abspath(curdir)
         if Windows().is_windows_2003() and environ.get('USERNAME', 'SYSTEM') == 'SYSTEM':
             # http://msdn.microsoft.com/en-us/library/windows/desktop/ms682431(v=vs.85).aspx
             # Windows XP with SP2 and Windows Server 2003:
@@ -45,7 +43,7 @@ class CreateProcess(object):
         commandLine = Ctypes.NULL if cmd_line is None else create_unicode_buffer(cmd_line)
         creationFlags = Ctypes.DWORD(0x00000010 | 0x00000400)
         environment = Environment.from_dict(env_mapping)
-        currentDirectory = Ctypes.NULL if curdir is None else create_unicode_buffer(curdir)
+        currentDirectory = create_unicode_buffer(path.abspath('.') if curdir is None else curdir)
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
@@ -71,7 +69,7 @@ class CreateProcess(object):
         applicationName = Ctypes.NULL if app_name is None else create_unicode_buffer(app_name)
         commandLine = Ctypes.NULL if cmd_line is None else create_unicode_buffer(cmd_line)
         environment = Environment.from_dict(env_mapping)
-        currentDirectory = Ctypes.NULL if curdir is None else create_unicode_buffer(curdir)
+        currentDirectory = create_unicode_buffer(path.abspath('.') if curdir is None else curdir)
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
