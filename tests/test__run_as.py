@@ -11,6 +11,7 @@ class RunAsTestCase(TestCase):
             self.assertEquals(0, run_as(["Administrator", "Password", "ifconfig"]))
 
     def test__on_windows(self):
+        from infi.run_as import run_as
         if name != 'nt':
             raise SkipTest("windows only")
         username, password = environ['RUNAS_USERNAME'], environ['RUNAS_PASSWORD']
