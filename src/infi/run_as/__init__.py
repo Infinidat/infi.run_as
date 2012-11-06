@@ -4,7 +4,7 @@ from infi.winver import Windows
 from infi.pyutils.contexts import contextmanager
 from mock import patch, MagicMock
 from logging import getLogger
-from os import environ
+from os import environ, path
 from sys import argv, stderr, stdout, exit
 from .c_api import Environment, StartupInfoW, ProcessInformation, CreateProcessWithLogonW, WaitForInputIdle, Handle
 from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE
@@ -20,6 +20,8 @@ class CreateProcess(object):
     def create_process_as_administrator(self, *args, **kwargs):
         """ A drop-in replacement for _subprocess.CreateProcess that creates the process as an administrator
         :returns: a 4-tuple (proc_handle, thread_handle, pid, tid)"""
+        from os import path, curdir
+        kwargs['curdir'] = os.path.abspath(curdir)
         if Windows().is_windows_2003() and environ.get('USERNAME', 'SYSTEM') == 'SYSTEM':
             # http://msdn.microsoft.com/en-us/library/windows/desktop/ms682431(v=vs.85).aspx
             # Windows XP with SP2 and Windows Server 2003:
