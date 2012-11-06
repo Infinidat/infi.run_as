@@ -17,7 +17,7 @@ class CreateProcess(object):
         self.username = username
         self.password = password
 
-    def create_process_as_administrator(*args, **kwargs):
+    def create_process_as_administrator(self, *args, **kwargs):
         """ A drop-in replacement for _subprocess.CreateProcess that creates the process as an administrator
         :returns: a 4-tuple (proc_handle, thread_handle, pid, tid)"""
         if Windows().is_windows_2003() and environ.get('USERNAME', 'SYSTEM') == 'SYSTEM':
@@ -30,7 +30,7 @@ class CreateProcess(object):
             return self._CreateProcessAsUser(*args, **kwargs)
         return self._CreateProcessWithLogon(*args, **kwargs)
 
-    def _CreateProcessWithLogon(app_name, cmd_line, proc_attrs, thread_attrs, inherit,
+    def _CreateProcessWithLogon(self, app_name, cmd_line, proc_attrs, thread_attrs, inherit,
                                 flags, env_mapping, curdir, startup_info):
         """ A drop-in replacement for _subprocess.CreateProcess that creates the process as an administrator
         :returns: a 4-tuple (proc_handle, thread_handle, pid, tid)"""
@@ -60,7 +60,7 @@ class CreateProcess(object):
                   processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
-    def _CreateProcessAsUser(app_name, cmd_line, proc_attrs, thread_attrs, inherit,
+    def _CreateProcessAsUser(self, app_name, cmd_line, proc_attrs, thread_attrs, inherit,
                              flags, env_mapping, curdir, startup_info):
         """ A drop-in replacement for _subprocess.CreateProcess that creates the process as an administrator
         :returns: a 4-tuple (proc_handle, thread_handle, pid, tid)"""
