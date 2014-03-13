@@ -54,3 +54,6 @@ tmp*
 buildout.in
 
 src/infi/run_as/__version__.py
+.cache
+eggs
+parts
