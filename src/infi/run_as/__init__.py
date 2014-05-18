@@ -1,7 +1,6 @@
 __import__("pkg_resources").declare_namespace(__name__)
 
 from infi.winver import Windows
-from infi.pyutils.contexts import contextmanager
 from mock import patch, MagicMock
 from logging import getLogger
 from os import environ, path
@@ -87,17 +86,13 @@ class CreateProcess(object):
                   processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
-@contextmanager
-def subprocess_runas_context(username, password):
-    with patch("_subprocess.CreateProcess") as CreateProcess_:
-        CreateProcess_.side_effect = CreateProcess(username, password).create_process_as_administrator
-        yield
 
 def run_as(argv=argv[1:]):
-    from infi.execute import execute
+    from infi.execute.runner import LocalRunner
     username, password, args = argv[0], argv[1], argv[2:]
-    with subprocess_runas_context(username, password):
-        pid = execute(args)
+    runner = LocalRunner()
+    runner.popen = CreateProcess(username, password).create_process_as_administrator
+    pid = runner.execute(args)
     stdout.write(pid.get_stdout())
     stdout.flush()
     stderr.write(pid.get_stderr())
