@@ -18,11 +18,17 @@ class CreateProcess(object):
         super(CreateProcess, self).__init__()
         self.username = username
         self.password = password
-        self.method = self._CreateProcessWithLogon if \
-                      self._can_we_user_create_process_with_login() else \
-                      self._CreateProcessAsUser
+        self.method = self._CreateProcessAsUser if \
+                      self._can_we_not_use_create_process_with_login() else \
+                      self._CreateProcessWithLogon
 
-    def _can_we_user_create_process_with_login(self):
+    def _can_we_not_use_create_process_with_login(self):
+        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms68243a1(v=vs.85).aspx
+        # Windows XP with SP2 and Windows Server 2003:
+        # You cannot call CreateProcessWithLogonW from a process that is running under the "LocalSystem" account,
+        # because the function uses the logon SID in the caller token,
+        # and the token for the "LocalSystem" account does not contain this SID.
+        # As an alternative, use the CreateProcessAsUser and LogonUser functions.
         return Windows().is_windows_2003() and environ.get('USERNAME', 'SYSTEM') == 'SYSTEM'
 
     def create_process_as_administrator(self, *args, **kwargs):
