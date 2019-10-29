@@ -1,6 +1,6 @@
 __import__("pkg_resources").declare_namespace(__name__)
 
-from sys import maxsize
+from sys import maxsize, version_info
 from infi.winver import Windows
 from infi.cwrap import WrappedFunction, IN, IN_OUT, errcheck_zero, errcheck_nothing
 from infi.instruct import Struct, ULInt16, ULInt32, ULInt64, Padding
@@ -13,8 +13,16 @@ from logging import getLogger
 logger = getLogger(__name__)
 # pylint: disable=C0103
 
+
 def is_64bit():
     return maxsize > 2 ** 32
+
+
+def to_bytes(data):
+    if version_info[0] < 3:
+        return data
+    return bytes(data)
+
 
 class Ctypes(object):
     BOOL = c_ulong
@@ -48,7 +56,7 @@ class StartupInfoW(Struct):
     @classmethod
     def from_subprocess_startupinfo(cls, startup_info):
         size = StartupInfoW.min_max_sizeof().max
-        this = cls.create_from_string(create_buffer(size))
+        this = cls.create_from_string(to_bytes(create_buffer(size)))
         this.dwFlags = startup_info.dwFlags
         this.hStdInput = startup_info.hStdInput or 0
         this.hStdOutput = startup_info.hStdOutput or 0
@@ -214,7 +222,7 @@ class Environment(object):
 
 def create_buffer(size):
     logger.debug("Allocating buffer of size {}".format(size))
-    return c_buffer('\x00' * size, size)
+    return c_buffer(b'\x00' * size, size)
 
 def get_token(username, password):
     username = create_unicode_buffer(username)
