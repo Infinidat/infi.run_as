@@ -1,6 +1,6 @@
 __import__("pkg_resources").declare_namespace(__name__)
 
-from sys import maxsize
+from sys import maxsize, version_info
 from infi.winver import Windows
 from infi.cwrap import WrappedFunction, IN, IN_OUT, errcheck_zero, errcheck_nothing
 from infi.instruct import Struct, ULInt16, ULInt32, ULInt64, Padding
@@ -214,7 +214,10 @@ class Environment(object):
 
 def create_buffer(size):
     logger.debug("Allocating buffer of size {}".format(size))
-    return bytes(c_buffer(b'\x00' * size, size))
+    buff = c_buffer(b'\x00' * size, size)
+    if version_info[0] >= 3:
+        buff = bytes(buff)
+    return buff
 
 def get_token(username, password):
     username = create_unicode_buffer(username)

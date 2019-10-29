@@ -62,8 +62,8 @@ class CreateProcess(object):
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
         logger.debug("Done waiting")
-        result = (processInformation_.hProcess, processInformation_.hThread,
-                  processInformation_.dwProcessId, processInformation_.dwThreadId)
+        h_process, h_thread = self._get_hprocess_hthread(processInformation_)
+        result = (h_process,h_thread, processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
     def _CreateProcessAsUser(self, app_name, cmd_line, proc_attrs, thread_attrs, inherit,
@@ -89,9 +89,14 @@ class CreateProcess(object):
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
         logger.debug("Done waiting")
-        result = (processInformation_.hProcess, processInformation_.hThread,
-                  processInformation_.dwProcessId, processInformation_.dwThreadId)
+        h_process, h_thread = self._get_hprocess_hthread(processInformation_)
+        result = (h_process,h_thread, processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
+
+    def _get_hprocess_hthread(self, processInformation_):
+        if sys.version_info[0] < 3:
+            return Handle(processInformation_.hProcess), Handle(processInformation_.hThread)
+        return processInformation_.hProcess, processInformation_.hThread
 
 
 @contextmanager
