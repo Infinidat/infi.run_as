@@ -214,7 +214,7 @@ class Environment(object):
 
 def create_buffer(size):
     logger.debug("Allocating buffer of size {}".format(size))
-    return c_buffer('\x00' * size, size)
+    return bytes(c_buffer(b'\x00' * size, size))
 
 def get_token(username, password):
     username = create_unicode_buffer(username)

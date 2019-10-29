@@ -1,11 +1,12 @@
 __import__("pkg_resources").declare_namespace(__name__)
 
+import sys
 from infi.winver import Windows
 from infi.pyutils.contexts import contextmanager
-from mock import patch, MagicMock
+from mock import patch
 from logging import getLogger
 from os import environ, path
-from sys import argv, stderr, stdout, exit
+from sys import argv, stderr, stdout
 from .c_api import Environment, StartupInfoW, ProcessInformation, CreateProcessWithLogonW, WaitForInputIdle, Handle
 from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE
 
@@ -53,7 +54,6 @@ class CreateProcess(object):
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
-        from time import sleep
         result = CreateProcessWithLogonW(username, domain, password, logonFlags,
                                          applicationName, commandLine, creationFlags,
                                          environment, currentDirectory, startupInfo, processInformation)
@@ -62,7 +62,7 @@ class CreateProcess(object):
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
         logger.debug("Done waiting")
-        result = (Handle(processInformation_.hProcess), Handle(processInformation_.hThread),
+        result = (processInformation_.hProcess, processInformation_.hThread,
                   processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
@@ -89,15 +89,19 @@ class CreateProcess(object):
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
         logger.debug("Done waiting")
-        result = (Handle(processInformation_.hProcess), Handle(processInformation_.hThread),
+        result = (processInformation_.hProcess, processInformation_.hThread,
                   processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
 
 @contextmanager
 def subprocess_runas_context(username, password):
+    if sys.version_info[0] < 3:
+        create_process_path = "_subprocess.CreateProcess"
+    else:
+        create_process_path = "_winapi.CreateProcess"
     side_effect = CreateProcess(username, password).create_process_as_administrator
-    with patch("_subprocess.CreateProcess", new=side_effect):
+    with patch(create_process_path, new=side_effect):
         yield
 
 
@@ -106,9 +110,9 @@ def run_as(argv=argv[1:]):
     username, password, args = argv[0], argv[1], argv[2:]
     with subprocess_runas_context(username, password):
         pid = execute(args)
-    stdout.write(pid.get_stdout())
+    stdout.write(str(pid.get_stdout()))
     stdout.flush()
-    stderr.write(pid.get_stderr())
+    stderr.write(str(pid.get_stderr()))
     stderr.flush()
     return pid.get_returncode()
 
