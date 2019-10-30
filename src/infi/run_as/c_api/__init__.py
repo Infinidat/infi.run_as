@@ -1,20 +1,19 @@
 __import__("pkg_resources").declare_namespace(__name__)
 
-from sys import maxsize, version_info
-from infi.winver import Windows
-from infi.cwrap import WrappedFunction, IN, IN_OUT, errcheck_zero, errcheck_nothing
+from sys import maxsize
+from infi.cwrap import WrappedFunction, IN, errcheck_zero, errcheck_nothing
 from infi.instruct import Struct, ULInt16, ULInt32, ULInt64, Padding
-from ctypes import c_void_p, c_ulong, c_buffer, create_string_buffer, create_unicode_buffer, byref
-from infi.pyutils.contexts import contextmanager
-from mock import patch, MagicMock
+from ctypes import c_void_p, c_ulong, c_buffer, create_unicode_buffer, byref
 from os import environ
 from logging import getLogger
 
 logger = getLogger(__name__)
 # pylint: disable=C0103
 
+
 def is_64bit():
     return maxsize > 2 ** 32
+
 
 class Ctypes(object):
     BOOL = c_ulong
@@ -22,16 +21,19 @@ class Ctypes(object):
     NULL = c_void_p(None)
     HANDLE = c_void_p
 
+
 class Instruct(object):
     POINTER = ULInt64 if is_64bit() else ULInt32
     DWORD = ULInt32
     WORD = ULInt16
     HANDLE = ULInt64 if is_64bit() else ULInt32
 
+
 class ProcessInformation(Struct):
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms684873(v=vs.85).aspx
     _fields_ = [Instruct.HANDLE("hProcess"), Instruct.HANDLE("hThread"),
                 Instruct.DWORD("dwProcessId"), Instruct.DWORD("dwThreadId")]
+
 
 class StartupInfoW(Struct):
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms686331(v=vs.85).aspx
@@ -56,14 +58,17 @@ class StartupInfoW(Struct):
         this.cb = size
         return this.write_to_string(this)
 
+
 def errcheck_bool():
     from ctypes import GetLastError
+
     def errcheck(result, func, args):
         if result == 0:
             last_error = GetLastError()
             raise RuntimeError(last_error)
         return result
     return errcheck
+
 
 class WaitForInputIdle(WrappedFunction):
     return_value = Ctypes.DWORD
@@ -81,6 +86,7 @@ class WaitForInputIdle(WrappedFunction):
         return ((Ctypes.HANDLE, IN, 'hProcess'),
                 (Ctypes.DWORD, IN, 'dwMilliseconds'))
 
+
 class CloseHandle(WrappedFunction):
     return_value = Ctypes.DWORD
 
@@ -95,6 +101,7 @@ class CloseHandle(WrappedFunction):
     @classmethod
     def get_parameters(cls):
         return ((Ctypes.HANDLE, IN, 'hObject'),)
+
 
 class LogonUserW(WrappedFunction):
     # http://msdn.microsoft.com/en-us/library/windows/desktop/aa378184(v=vs.85).aspx
@@ -116,6 +123,7 @@ class LogonUserW(WrappedFunction):
                 (Ctypes.DWORD, IN, "logonType"),
                 (Ctypes.DWORD, IN, "logonProvider"),
                 (c_void_p, IN, "pToken"))
+
 
 class CreateProcessAsUserW(WrappedFunction):
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms682429(v=vs.85).aspx
@@ -148,6 +156,7 @@ INFINITE = 2147483647
 LOGON32_PROVIDER_WINNT50 = 3
 LOGON32_LOGON_INTERACTIVE = 2
 
+
 class CreateProcessWithLogonW(WrappedFunction):
     # http://msdn.microsoft.com/en-us/library/ms682431(VS.85).aspx
     return_value = Ctypes.BOOL
@@ -174,6 +183,7 @@ class CreateProcessWithLogonW(WrappedFunction):
                 (c_void_p, IN, "startupInfo"),
                 (c_void_p, IN, "processInformation"))
 
+
 class Handle(object):
     # Mocked from _subprocess.c
     def __init__(self, handle):
@@ -196,6 +206,7 @@ class Handle(object):
     def __del__(self):
         self.Close()
 
+
 class Environment(object):
     @classmethod
     def from_dict(cls, env=None):
@@ -205,16 +216,18 @@ class Environment(object):
         Each string is in the following form:
         name=value\0
         """
-        if env == None:
+        if env is None:
             return Ctypes.NULL
         pairs = ["{}={}".format(key, value) for key, value in env.items()]
         string = "\0".join([pairs])
         buffer = create_unicode_buffer(string)
         return buffer
 
+
 def create_buffer(size):
     logger.debug("Allocating buffer of size {}".format(size))
     return c_buffer(b'\x00' * size, size)
+
 
 def get_token(username, password):
     username = create_unicode_buffer(username)
