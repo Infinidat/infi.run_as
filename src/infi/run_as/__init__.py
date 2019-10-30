@@ -63,7 +63,7 @@ class CreateProcess(object):
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
         logger.debug("Done waiting")
         h_process, h_thread = self._get_hprocess_hthread(processInformation_)
-        result = (h_process,h_thread, processInformation_.dwProcessId, processInformation_.dwThreadId)
+        result = (h_process, h_thread, processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
     def _CreateProcessAsUser(self, app_name, cmd_line, proc_attrs, thread_attrs, inherit,
@@ -90,7 +90,7 @@ class CreateProcess(object):
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
         logger.debug("Done waiting")
         h_process, h_thread = self._get_hprocess_hthread(processInformation_)
-        result = (h_process,h_thread, processInformation_.dwProcessId, processInformation_.dwThreadId)
+        result = (h_process, h_thread, processInformation_.dwProcessId, processInformation_.dwThreadId)
         return result
 
     def _get_hprocess_hthread(self, processInformation_):

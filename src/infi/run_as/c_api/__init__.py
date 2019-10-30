@@ -48,7 +48,7 @@ class StartupInfoW(Struct):
     @classmethod
     def from_subprocess_startupinfo(cls, startup_info):
         size = StartupInfoW.min_max_sizeof().max
-        this = cls.create_from_string(create_buffer(size))
+        this = cls.create_from_string(bytes(create_buffer(size)))
         this.dwFlags = startup_info.dwFlags
         this.hStdInput = startup_info.hStdInput or 0
         this.hStdOutput = startup_info.hStdOutput or 0
@@ -214,10 +214,7 @@ class Environment(object):
 
 def create_buffer(size):
     logger.debug("Allocating buffer of size {}".format(size))
-    buff = c_buffer(b'\x00' * size, size)
-    if version_info[0] >= 3:
-        buff = bytes(buff)
-    return buff
+    return c_buffer(b'\x00' * size, size)
 
 def get_token(username, password):
     username = create_unicode_buffer(username)
