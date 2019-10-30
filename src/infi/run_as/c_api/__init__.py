@@ -1,6 +1,6 @@
 __import__("pkg_resources").declare_namespace(__name__)
 
-from sys import maxsize
+from sys import maxsize, version_info
 from infi.cwrap import WrappedFunction, IN, errcheck_zero, errcheck_nothing
 from infi.instruct import Struct, ULInt16, ULInt32, ULInt64, Padding
 from ctypes import c_void_p, c_ulong, c_buffer, create_unicode_buffer, byref
@@ -9,6 +9,9 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 # pylint: disable=C0103
+
+if version_info[0] < 3:
+    bytes = lambda x: x
 
 
 def is_64bit():

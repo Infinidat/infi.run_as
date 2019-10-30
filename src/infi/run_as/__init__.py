@@ -14,6 +14,10 @@ from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, Crea
 logger = getLogger(__name__)
 
 
+if sys.version_info[0] < 3:
+    bytes = lambda x: x
+
+
 class CreateProcess(object):
     def __init__(self, username, password):
         super(CreateProcess, self).__init__()
@@ -57,7 +61,7 @@ class CreateProcess(object):
         result = CreateProcessWithLogonW(username, domain, password, logonFlags,
                                          applicationName, commandLine, creationFlags,
                                          environment, currentDirectory, startupInfo, processInformation)
-        processInformation_ = ProcessInformation.create_from_string(processInformation)
+        processInformation_ = ProcessInformation.create_from_string(bytes(processInformation))
         logger.debug("Call returned {} with {!r}".format(result, processInformation_))
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
@@ -84,7 +88,7 @@ class CreateProcess(object):
                                       Ctypes.BOOL(False), 0, environment, currentDirectory,
                                       startupInfo, processInformation)
         Handle(token).Close()
-        processInformation_ = ProcessInformation.create_from_string(processInformation)
+        processInformation_ = ProcessInformation.create_from_string(bytes(processInformation))
         logger.debug("Call returned {} with {!r}".format(result, processInformation_))
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
@@ -115,9 +119,9 @@ def run_as(argv=argv[1:]):
     username, password, args = argv[0], argv[1], argv[2:]
     with subprocess_runas_context(username, password):
         pid = execute(args)
-    stdout.write(pid.get_stdout().decode(encoding=sys.stdout.encoding))
+    stdout.write(pid.get_stdout().decode(encoding=sys.stdout.encoding or 'utf-8'))
     stdout.flush()
-    stderr.write(pid.get_stderr().decode(encoding=sys.stderr.encoding))
+    stderr.write(pid.get_stderr().decode(encoding=sys.stderr.encoding or 'utf-8'))
     stderr.flush()
     return pid.get_returncode()
 
