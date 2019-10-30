@@ -8,14 +8,10 @@ from logging import getLogger
 from os import environ, path
 from sys import argv, stderr, stdout
 from .c_api import Environment, StartupInfoW, ProcessInformation, CreateProcessWithLogonW, WaitForInputIdle, Handle
-from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE
+from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE, to_bytes
 
 
 logger = getLogger(__name__)
-
-
-if sys.version_info[0] < 3:
-    bytes = lambda x: x
 
 
 class CreateProcess(object):
@@ -61,7 +57,7 @@ class CreateProcess(object):
         result = CreateProcessWithLogonW(username, domain, password, logonFlags,
                                          applicationName, commandLine, creationFlags,
                                          environment, currentDirectory, startupInfo, processInformation)
-        processInformation_ = ProcessInformation.create_from_string(bytes(processInformation))
+        processInformation_ = ProcessInformation.create_from_string(to_bytes(processInformation))
         logger.debug("Call returned {} with {!r}".format(result, processInformation_))
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
@@ -88,7 +84,7 @@ class CreateProcess(object):
                                       Ctypes.BOOL(False), 0, environment, currentDirectory,
                                       startupInfo, processInformation)
         Handle(token).Close()
-        processInformation_ = ProcessInformation.create_from_string(bytes(processInformation))
+        processInformation_ = ProcessInformation.create_from_string(to_bytes(processInformation))
         logger.debug("Call returned {} with {!r}".format(result, processInformation_))
         logger.debug("Waiting for process to finish initalization")
         WaitForInputIdle(processInformation_.hProcess, INFINITE)
