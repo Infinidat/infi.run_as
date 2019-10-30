@@ -3,10 +3,10 @@ __import__("pkg_resources").declare_namespace(__name__)
 import sys
 from infi.winver import Windows
 from infi.pyutils.contexts import contextmanager
-from mock import patch
+from mock import patch, MagicMock
 from logging import getLogger
 from os import environ, path
-from sys import argv, stderr, stdout
+from sys import argv, stderr, stdout, exit
 from .c_api import Environment, StartupInfoW, ProcessInformation, CreateProcessWithLogonW, WaitForInputIdle, Handle
 from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE
 
@@ -54,6 +54,7 @@ class CreateProcess(object):
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
+        from time import sleep
         result = CreateProcessWithLogonW(username, domain, password, logonFlags,
                                          applicationName, commandLine, creationFlags,
                                          environment, currentDirectory, startupInfo, processInformation)
