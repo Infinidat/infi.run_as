@@ -3,10 +3,10 @@ __import__("pkg_resources").declare_namespace(__name__)
 import sys
 from infi.winver import Windows
 from infi.pyutils.contexts import contextmanager
-from mock import patch, MagicMock
+from mock import patch
 from logging import getLogger
 from os import environ, path
-from sys import argv, stderr, stdout, exit
+from sys import argv, stderr, stdout
 from .c_api import Environment, StartupInfoW, ProcessInformation, CreateProcessWithLogonW, WaitForInputIdle, Handle
 from .c_api import create_buffer, create_unicode_buffer, Ctypes, get_token, CreateProcessAsUserW, INFINITE, to_bytes
 
@@ -54,7 +54,6 @@ class CreateProcess(object):
         startupInfo = StartupInfoW.from_subprocess_startupinfo(startup_info)
         processInformation = create_buffer(ProcessInformation.min_max_sizeof().max)
         logger.debug("Calling CreateProcessWithLogonW for {} {}".format(app_name, cmd_line))
-        from time import sleep
         result = CreateProcessWithLogonW(username, domain, password, logonFlags,
                                          applicationName, commandLine, creationFlags,
                                          environment, currentDirectory, startupInfo, processInformation)
@@ -121,5 +120,6 @@ def run_as(argv=argv[1:]):
     stderr.write(pid.get_stderr().decode(encoding='utf-8'))
     stderr.flush()
     return pid.get_returncode()
+
 
 __all__ = ['subprocess_runas_context', 'run_as']
