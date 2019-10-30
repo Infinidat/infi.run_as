@@ -119,9 +119,9 @@ def run_as(argv=argv[1:]):
     username, password, args = argv[0], argv[1], argv[2:]
     with subprocess_runas_context(username, password):
         pid = execute(args)
-    stdout.write(pid.get_stdout().decode(encoding=sys.stdout.encoding or 'utf-8'))
+    stdout.write(pid.get_stdout().decode(encoding='utf-8'))
     stdout.flush()
-    stderr.write(pid.get_stderr().decode(encoding=sys.stderr.encoding or 'utf-8'))
+    stderr.write(pid.get_stderr().decode(encoding='utf-8'))
     stderr.flush()
     return pid.get_returncode()
 
