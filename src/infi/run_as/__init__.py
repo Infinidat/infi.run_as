@@ -110,15 +110,21 @@ def subprocess_runas_context(username, password):
         yield
 
 
+def write_to_stream(stream, content):
+    if sys.version_info[0] < 3:
+        stream.write(content)
+    else:
+        stream.buffer.write(content)
+    stream.flush()
+
+
 def run_as(argv=argv[1:]):
     from infi.execute import execute
     username, password, args = argv[0], argv[1], argv[2:]
     with subprocess_runas_context(username, password):
         pid = execute(args)
-    stdout.write(pid.get_stdout().decode(encoding='utf-8'))
-    stdout.flush()
-    stderr.write(pid.get_stderr().decode(encoding='utf-8'))
-    stderr.flush()
+    write_to_stream(stdout, pid.get_stdout())
+    write_to_stream(stderr, pid.get_stderr())
     return pid.get_returncode()
 
 
